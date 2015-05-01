@@ -1,0 +1,24 @@
+
+# ==============================================================#=
+# FILE:
+#     project_config.yaml
+#
+# DESCRIPTION:
+#     """""""""""""""""""""""""""""""""""""""""""""'
+#     """""""""""""""""""""""""""""""""""""""""""""'
+#     """""""""""""""""""""""""""""""""""""""""""""'
+# ==============================================================#=
+
+---
+:repositories:
+
+    - project:
+        :url: git@github.com:raensink/ti.quickstart.project
+        :local_dir: project
+
+    - mcu_lib:
+        :url: git@github.com:raensink/ti.quickstart.mculib
+
+    - app:
+        :url: git@github.com:raensink/ti.quickstart.app
+

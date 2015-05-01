@@ -1,0 +1,164 @@
+#!/usr/bin/env ruby
+
+# ==============================================================================================#=
+# FILE:
+#     proj.rb
+#
+# DESCRIPTION:
+#     """"""""""""""""""""""""""""""""""""""""""""""""""""""
+#     """"""""""""""""""""""""""""""""""""""""""""""""""""""
+#     """"""""""""""""""""""""""""""""""""""""""""""""""""""
+#     """"""""""""""""""""""""""""""""""""""""""""""""""""""
+#
+# DEPENDENCIES:
+#     """"""""""""""""""""""""""""""""""""""""""""""""""""""
+#     """"""""""""""""""""""""""""""""""""""""""""""""""""""
+#     """"""""""""""""""""""""""""""""""""""""""""""""""""""
+#     """"""""""""""""""""""""""""""""""""""""""""""""""""""
+#     """"""""""""""""""""""""""""""""""""""""""""""""""""""
+# ==============================================================================================#=
+
+require 'yaml'
+
+# ------------------------------------------------------------------------------+-
+# Configuration & Current Environment
+# ------------------------------------------------------------------------------+-
+this_dir = File.expand_path(File.dirname(__FILE__))
+
+$gCustomCommandFile = "#{this_dir}/project_config.yaml"
+
+
+# ------------------------------------------------------------------------------+-
+# Command Line Arguments
+# ------------------------------------------------------------------------------+-
+$gCommand   = nil
+$gSubCmdArg = nil
+$gArg       = nil
+
+unless ARGV.empty?
+  $gCommand  = ARGV[0]
+end
+
+if ARGV.length >= 2
+  $gSubCmdArg = ARGV[1]
+end
+
+if ARGV.length >= 3
+  $gArg = ARGV[2]
+end
+
+
+# ------------------------------------------------------------------------------+-
+# Methods
+# ------------------------------------------------------------------------------+-
+def puts_help
+  puts <<-EOF
+
+SYNOPSIS:
+  proj command [sub-command or argument [argument]]
+
+DESCRIPTION:
+  This script can be used to generate the .config and .config_test.yaml files
+  using menuConfig/Kconfig and the user's config_custom.yaml or some other
+  specified .yaml file.
+
+COMMANDS:
+  help, --help, -h:
+    show this help
+
+EOF
+end
+
+
+def failure
+  exit(1)
+end
+
+
+def success
+  exit(0)
+end
+
+
+def read_project_configuration_from_file
+  project_config = nil
+  begin
+    project_config = YAML.load(File.open($gCustomCommandFile))
+  rescue => e
+    raise "ERROR processing config file: #{fp} - " + e.inspect
+  end
+  return project_config
+end
+
+
+def report_status_of_each_repository
+  proj_config = read_project_configuration_from_file
+
+  proj_repo_list = []
+  proj_config[:repositories].each { |repo| proj_repo_list << ProjectRepo.new(repo) }
+end
+
+
+def handle_command_repos(given_sub_command, given_argument)
+  if given_sub_command.nil?
+    puts
+    puts "proj: the repos command requires a sub-command.  See: proj repos help."
+    puts
+    failure
+
+  elsif given_sub_command == 'status'
+    report_status_of_each_repository
+
+  else
+    puts
+    puts "proj: '#{given_sub_command}' is not a recognized repos sub-command."
+    puts
+    failure
+  end
+end
+
+
+# ==============================================================================================#=
+# Main
+# ==============================================================================================#=
+
+# ------------------------------------------------------------------------------+-
+# Top Level Command Recognition
+# ------------------------------------------------------------------------------+-
+unless $gCommand
+  puts
+  puts "proj: a command is required. See the help text shown below:"
+  puts_help
+  failure
+end
+
+if %w(-h --help help).include?  $gCommand
+  puts_help
+
+elsif 'repos' == $gCommand
+  handle_command_repos($gSubCmdArg, $gArg)
+
+else
+  puts
+  puts "proj: '#{$gCommand}' is not a recognized command."
+  puts
+  failure
+end
+
+success
+
+
+
+
+
+
+
+__END__
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+~
+------------------------------------------------------------------------------------------------+-
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@|@
+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+#+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-#-
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#=
+#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=+=
