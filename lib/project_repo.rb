@@ -13,29 +13,157 @@
 # DEPENDENCIES:
 #   """""""""""""""""""""""""""""""""""""""""
 #   """""""""""""""""""""""""""""""""""""""""
-#   """""""""""""""""""""""""""""""""""""""""
-#   """""""""""""""""""""""""""""""""""""""""
 # ==============================================================================#=
 
 
 class ProjectRepo
 
-  def initialize(repo_hash)
+  def initialize(given_hash)
     #
-    # repo_hash should look like this:
-    # {
-    #   :name      => name_string,
-    #   :local_dir => dir_name_string,
-    #   :url       => url_string,
-    # }
+    # given_hash should look like this:
+    #   {
+    #     :repo_name => "name string",
+    #     :url       => "URL string",
+    #     :dir_name  => "local directory name string",
+    #   }
     #
+
+    # ----------------------------------------------------------------+-
+    # A local name for the repository.
+    # ----------------------------------------------------------------+-
+    @repo_name = given_hash[:repo_name]
+
+    # ----------------------------------------------------------------+-
+    # The repo's official "URL".
+    # This is not really a URL or URI. @@@@@@@@@@@@@@@@@@@@
+    # FIX THIS
+    # ----------------------------------------------------------------+-
+    @url = given_hash[:url]
+
+    # ----------------------------------------------------------------+-
+    # Name of directory where repo exists.
+    # Defaults to same as repo name.
+    # ----------------------------------------------------------------+-
+    @dir_name = given_hash[:repo_name]
+
+    if given_hash.has_key?(:dir_name)
+      @dir_name = given_hash[:dir_name]
+    end
+
+    # ----------------------------------------------------------------+-
+    # Full directory path to the local copy of the repo.
+    # ----------------------------------------------------------------+-
+    @dir_path  = nil
+    find_repo_dir_path
+
+    unless @dir_path
+      @dir_name = File.basename(@url)
+      find_repo_dir_path
+    end
+
+    update_git_status
   end
+
+  private # ~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-+-
+
+  def find_repo_dir_path
+    # Look in the current dir and all parents
+    # for a directory whose name is @dir_name.
+    somedir = Dir.pwd
+
+    while(TRUE)
+      repopath = somedir + "/#{@dir_name}"
+
+      if Dir.exists? repopath
+        @dir_path  = repopath
+        break
+      end
+      nextdirup = File.dirname(somedir)
+      if nextdirup == somedir
+        break
+      else
+        somedir = nextdirup
+      end
+    end
+  end
+
+
+  def update_git_status
+    @is_a_git_repo    = false
+    @git_status_lines = ""
+
+    if @dir_path and Dir.exists? "#{@dir_path}/.git"
+      @is_a_git_repo = true
+    end
+
+    if @is_a_git_repo
+      cmd = SystemCommand.new
+      cmd << "cd #{@dir_path} && git status "
+      #
+      if cmd.run.success?
+        @git_status_lines = cmd.stdout
+      else
+        @git_status_lines = cmd.stderr
+      end
+    end
+    is_clean?
+  end
+
+  public  # ~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-+-
+
+  def to_s
+    puts "----------------------------------------------------+- "
+    puts "#{@repo_name}"
+    puts "----------------------------------------------------+- "
+    puts "URL:       #{@url}"
+    puts "DIR NAME:  #{@dir_name}"
+    puts "DIR PATH:  #{@dir_path}"
+    puts
+    puts "GIT REPO?  #{@is_a_git_repo}"
+    puts "CLEAN?     #{@is_clean}"
+    if !@git_status_lines.empty?
+      puts "GIT STATUS LINES: "
+      @git_status_lines.each_line {|line| puts "    #{line}"}
+    end
+    puts "----------------------------------------------------+- "
+  end
+
+  def dir_name
+    @dir_name
+  end
+
+  def is_a_git_repo?
+    @is_a_git_repo
+  end
+
+  def is_clean?
+    @is_clean = false
+
+    @git_status_lines.each_line do |l|
+      l.chomp!
+      if l =~ /^.*working directory clean.*$/i then
+        is_clean = true
+        break;
+      end
+    end
+    return @is_clean
+  end
+
 end
+
 
 
 __END__
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@|@
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@|@
+
+puts "    ========================= git status ==========================================="
+      ### ### puts "===================================================================="
+      ### ### puts cmd.str
+      ### ### puts "===================================================================="
+        ### ### puts "===================================================================="
+        ### ### puts cmd.stdout
+        ### ### puts "===================================================================="
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@|@
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@|@

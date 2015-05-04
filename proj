@@ -11,9 +11,10 @@
 #     """"""""""""""""""""""""""""""""""""""""""""""""""""""
 #
 # DEPENDENCIES:
-#     """"""""""""""""""""""""""""""""""""""""""""""""""""""
-#     """"""""""""""""""""""""""""""""""""""""""""""""""""""
-#     """"""""""""""""""""""""""""""""""""""""""""""""""""""
+#     <project>/<this repo dir>/<this file>
+#     <project>/<this repo dir>/lib/project_repo.rb
+#     <project>/<this repo dir>/lib/system_command.rb
+#
 #     """"""""""""""""""""""""""""""""""""""""""""""""""""""
 #     """"""""""""""""""""""""""""""""""""""""""""""""""""""
 # ==============================================================================================#=
@@ -23,9 +24,16 @@ require 'yaml'
 # ------------------------------------------------------------------------------+-
 # Configuration & Current Environment
 # ------------------------------------------------------------------------------+-
-this_dir = File.expand_path(File.dirname(__FILE__))
+$DIRPATH_THISREPO  = File.expand_path(File.dirname(__FILE__))
+$DIRPATH_RUBYLIB   = "#{$DIRPATH_THISREPO}/lib"
 
-$gCustomCommandFile = "#{this_dir}/project_config.yaml"
+$gCustomCommandFile = "#{$DIRPATH_THISREPO}/project_config.yaml"
+
+$LOAD_PATH.insert(0, $DIRPATH_RUBYLIB) unless $LOAD_PATH.include?($DIRPATH_RUBYLIB)
+
+require 'project_repo.rb'
+require 'system_command.rb'
+
 
 
 # ------------------------------------------------------------------------------+-
@@ -91,27 +99,85 @@ def read_project_configuration_from_file
 end
 
 
-def report_status_of_each_repository
+def get_list_of_repo_objects
+  proj_repo_list = []
+
   proj_config = read_project_configuration_from_file
 
-  proj_repo_list = []
-  proj_config[:repositories].each { |repo| proj_repo_list << ProjectRepo.new(repo) }
+  proj_config[:repositories].each do |repo|
+    name_key = repo.keys[0]
+
+    repo_config = {
+      :repo_name  => name_key,
+      :url        => repo[name_key][:url],
+    }
+
+    if repo[name_key].has_key?(:local_dir)
+      repo_config[:local_dir] = repo[name_key][:local_dir]
+    end
+    proj_repo_list << ProjectRepo.new(repo_config)
+  end
+
+  return proj_repo_list
 end
 
 
-def handle_command_repos(given_sub_command, given_argument)
+def list_each_repository
+  proj_repo_list = get_list_of_repo_objects
+  proj_repo_list.each do |repo|
+    puts repo.to_s
+  end
+end
+
+def report_summary_status_of_each_repository
+  proj_repo_list = get_list_of_repo_objects
+
+  printFormat = "%48s: %-9s %6s/%5s %s \n"
+
+  puts '================================================================================================#='
+  printf printFormat,
+    "Repo",
+    "Clean?",
+    "Behind",
+    "Ahead",
+    "Branch"
+  puts '================================================================================================#='
+
+  proj_repo_list.each do |repo|
+    if !repo.is_a_git_repo?
+      clean = ""
+    elsif repo.is_clean?
+      clean = "clean"
+    else
+      clean = "NOT-CLEAN"
+    end
+
+    printf printFormat,
+      repo.dir_name,
+      clean,
+      "nil",
+      "nil",
+      "nil"
+  end
+end
+
+
+def handle_command_repo(given_sub_command, given_argument)
   if given_sub_command.nil?
     puts
-    puts "proj: the repos command requires a sub-command.  See: proj repos help."
+    puts "proj: the 'repo' command requires a sub-command.  See: proj repo help."
     puts
     failure
 
   elsif given_sub_command == 'status'
-    report_status_of_each_repository
+    report_summary_status_of_each_repository
+
+  elsif given_sub_command == 'list'
+    list_each_repository
 
   else
     puts
-    puts "proj: '#{given_sub_command}' is not a recognized repos sub-command."
+    puts "proj: '#{given_sub_command}' is not a recognized 'repo' sub-command."
     puts
     failure
   end
@@ -135,8 +201,8 @@ end
 if %w(-h --help help).include?  $gCommand
   puts_help
 
-elsif 'repos' == $gCommand
-  handle_command_repos($gSubCmdArg, $gArg)
+elsif 'repo' == $gCommand
+  handle_command_repo($gSubCmdArg, $gArg)
 
 else
   puts
