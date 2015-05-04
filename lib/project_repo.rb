@@ -142,7 +142,7 @@ class ProjectRepo
     @git_status_lines.each_line do |l|
       l.chomp!
       if l =~ /^.*working directory clean.*$/i then
-        is_clean = true
+        @is_clean = true
         break;
       end
     end
