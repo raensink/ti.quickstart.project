@@ -152,12 +152,34 @@ def report_summary_status_of_each_repository
       clean = "NOT-CLEAN"
     end
 
+    if !repo.is_a_git_repo?
+      behind = ""
+    elsif repo.is_behind?
+      behind = "Behind"
+    else
+      behind = ""
+    end
+
+    if !repo.is_a_git_repo?
+      ahead = ""
+    elsif repo.is_behind?
+      ahead = "Ahead"
+    else
+      ahead = ""
+    end
+
+    if !repo.is_a_git_repo?
+      branch = ""
+    else
+      branch = repo.on_branch
+    end
+
     printf printFormat,
       repo.dir_name,
       clean,
-      "nil",
-      "nil",
-      "nil"
+      behind,
+      ahead,
+      branch
   end
 end
 

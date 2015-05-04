@@ -107,6 +107,9 @@ class ProjectRepo
       end
     end
     is_clean?
+    on_branch
+    is_behind?
+    is_ahead?
   end
 
   public  # ~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-+-
@@ -115,15 +118,25 @@ class ProjectRepo
     puts "----------------------------------------------------+- "
     puts "#{@repo_name}"
     puts "----------------------------------------------------+- "
-    puts "URL:       #{@url}"
-    puts "DIR NAME:  #{@dir_name}"
-    puts "DIR PATH:  #{@dir_path}"
-    puts
-    puts "GIT REPO?  #{@is_a_git_repo}"
-    puts "CLEAN?     #{@is_clean}"
-    if !@git_status_lines.empty?
-      puts "GIT STATUS LINES: "
-      @git_status_lines.each_line {|line| puts "    #{line}"}
+    puts "URL:        #{@url}"
+    puts "DIR NAME:   #{@dir_name}"
+    puts "DIR PATH:   #{@dir_path}"
+
+    if @dir_path
+      puts "GIT REPO?   #{@is_a_git_repo}"
+
+      if @is_a_git_repo
+        puts
+        puts "ON BRANCH:  #{@on_branch}"
+        puts "BEHIND:     #{@is_behind}"
+        puts "AHEAD:      #{@is_ahead}"
+        puts "CLEAN?      #{@is_clean}"
+
+        if !@git_status_lines.empty?
+          puts "GIT STATUS LINES: "
+          @git_status_lines.each_line {|line| puts "    #{line}"}
+        end
+      end
     end
     puts "----------------------------------------------------+- "
   end
@@ -139,17 +152,65 @@ class ProjectRepo
   def is_clean?
     @is_clean = false
 
-    @git_status_lines.each_line do |l|
-      l.chomp!
-      if l =~ /^.*working directory clean.*$/i then
-        @is_clean = true
-        break;
+    if @is_a_git_repo
+      @git_status_lines.each_line do |l|
+        l.chomp!
+        if l =~ /^.*working directory clean.*$/i then
+          @is_clean = true
+          break;
+        end
       end
     end
     return @is_clean
   end
 
-end
+  def is_behind?
+    @is_behind = false
+
+    if @is_a_git_repo
+      @git_status_lines.each_line do |l|
+        l.chomp!
+        if l =~ /^.*your branch is behind.*$/i then
+          @is_behind = true
+          break;
+        end
+      end
+    end
+    return @is_behind
+  end
+
+  def is_ahead?
+    @is_ahead = false
+
+    if @is_a_git_repo
+      @git_status_lines.each_line do |l|
+        l.chomp!
+        if l =~ /^.*your branch is ahead.*$/i then
+          @is_ahead = true
+          break;
+        end
+      end
+    end
+    return @is_ahead
+  end
+
+  def on_branch
+    @on_branch = ""
+
+    if @is_a_git_repo
+      @on_branch = "UNKNOWN"
+      @git_status_lines.each_line do |l|
+        l.chomp!
+        if l =~ /^.*on branch (\S*)$/i then
+          @on_branch = $1
+          break;
+        end
+      end
+    end
+    return @on_branch
+  end
+
+end  ### class: ProjectRepo ###
 
 
 
