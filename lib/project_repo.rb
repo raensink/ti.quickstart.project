@@ -50,26 +50,6 @@ class ProjectRepo
       @dir_name = given_hash[:dir_name]
     end
 
-    if @dir_name
-      # Try to find the repository using the configured local dir name.
-      find_repo_dir_path(@dir_name)
-    end
-
-    if @dir_path.nil? and @dir_name.nil?
-      # Try to find the repository using the configured repo name.
-      find_repo_dir_path(@repo_name)
-    end
-
-    if @dir_path.nil? and @dir_name.nil?
-      # Try to find the repository using the repo name from the url.
-      find_repo_dir_path(File.basename(@git_url))
-    end
-
-    if @dir_path.nil? and @dir_name.nil?
-      # Use the repo name from the url.
-      @dir_name = File.basename(@git_url)
-    end
-
     update_git_status
 
   end  ### initialize ###
@@ -77,16 +57,19 @@ class ProjectRepo
   private # ~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-+-
 
   def find_repo_dir_path(given_dir_name)
+    #
     # Look in the current dir and all parents for
     # a directory whose name matches the given dir name.
+    # Set @dir_name and @dir_path accordingly.
+    #
     somedir = Dir.pwd
 
     while(TRUE)
       repopath = somedir + "/#{given_dir_name}"
 
       if Dir.exists? repopath
-        @dir_path  = repopath
         @dir_name  = given_dir_name
+        @dir_path  = repopath
         break
       end
       nextdirup = File.dirname(somedir)
@@ -100,27 +83,49 @@ class ProjectRepo
 
 
   def update_git_status
-    @is_a_git_repo    = false
-    @git_status_lines = ""
+    if @dir_name
+      # Try to find the repository using the configured local dir name.
+      find_repo_dir_path(@dir_name)
+    end
 
+    if @dir_name.nil? and @dir_path.nil?
+      # Try to find the repository using the configured repo name.
+      find_repo_dir_path(@repo_name)
+    end
+
+    if @dir_name.nil? and @dir_path.nil?
+      # Try to find the repository using the repo name from the url.
+      find_repo_dir_path(File.basename(@git_url))
+    end
+
+    if @dir_name.nil? and @dir_path.nil?
+      # Use the repo name from the url.
+      @dir_name = File.basename(@git_url)
+    end
+
+    @is_a_git_repo = false
     if @dir_path and Dir.exists? "#{@dir_path}/.git"
+      ### ### puts "UGS: is a git repo"
       @is_a_git_repo = true
     end
 
     if @is_a_git_repo
+      @git_status_lines = ""
       cmd = SystemCommand.new
       cmd << "cd #{@dir_path} && git status "
-      #
+      ### ### puts "UGS: git status"
       if cmd.run.success?
         @git_status_lines = cmd.stdout
+        ### ### puts "UGS: success"
       else
         @git_status_lines = cmd.stderr
+        ### ### puts "UGS: failure"
       end
     end
     is_clean?
-    on_branch
     is_behind?
     is_ahead?
+    on_branch
   end
 
   public  # ~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-+-
