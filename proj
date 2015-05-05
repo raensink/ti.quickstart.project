@@ -118,8 +118,8 @@ def get_list_of_repo_objects
       :git_url    => repo[name_key][:git_url],
     }
 
-    if repo[name_key].has_key?(:local_dir)
-      repo_config[:local_dir] = repo[name_key][:local_dir]
+    if repo[name_key].has_key?(:dir_name)
+      repo_config[:dir_name] = repo[name_key][:dir_name]
     end
     proj_repo_list << ProjectRepo.new(repo_config)
   end
