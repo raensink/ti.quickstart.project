@@ -240,7 +240,7 @@ class ProjectRepo
       str << "================================================================================#= \n"
       str << cmd.str + "\n"
       if cmd.run.success?
-        str << "SUCCESS. \n"
+        str << "Success. \n"
         str << cmd.stdout
       else
         str << "FAILURE! \n"
@@ -258,7 +258,7 @@ class ProjectRepo
       str << "================================================================================#= \n"
       str << cmd.str + "\n"
       if cmd.run.success?
-        str << "SUCCESS. \n"
+        str << "Success. \n"
         str << cmd.stdout
       else
         str << "FAILURE! \n"
