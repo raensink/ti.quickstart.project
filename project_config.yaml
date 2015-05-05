@@ -21,4 +21,5 @@
 
     - app:
         :git_url: git@github.com:raensink/ti.quickstart.app
+        :local_dir: application
 

@@ -115,9 +115,9 @@ class ProjectRepo
 
   def to_s
     str =  ''
-    str << "----------------------------------------------------+- \n"
+    str << "------------------------------------------------------------+- \n"
     str << "#{@repo_name} \n"
-    str << "----------------------------------------------------+- \n"
+    str << "------------------------------------------------------------+- \n"
     str << "GIT URL:    #{@git_url} \n"
     str << "DIR NAME:   #{@dir_name} \n"
     str << "DIR PATH:   #{@dir_path} \n"
@@ -138,7 +138,7 @@ class ProjectRepo
         end
       end
     end
-    str << "----------------------------------------------------+- \n"
+    str << "------------------------------------------------------------+- \n"
     str
   end
 
@@ -228,10 +228,10 @@ class ProjectRepo
       str << "================================================================================#= \n"
       str << cmd.str + "\n"
       if cmd.run.success?
-        str << "SUCCESS"
+        str << "SUCCESS. \n"
         str << cmd.stdout
       else
-        str << "FAILURE"
+        str << "FAILURE! \n"
         str << cmd.stderr
       end
       update_git_status
@@ -246,14 +246,15 @@ class ProjectRepo
       str << "================================================================================#= \n"
       str << cmd.str + "\n"
       if cmd.run.success?
-        str << "SUCCESS"
+        str << "SUCCESS. \n"
         str << cmd.stdout
       else
-        str << "FAILURE"
+        str << "FAILURE! \n"
         str << cmd.stderr
       end
       update_git_status
     end
+
     str
   end
 
