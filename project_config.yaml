@@ -14,12 +14,12 @@
 
     - project:
         :git_url: git@github.com:raensink/ti.quickstart.project
-        :local_dir: project
+        :dir_name: project
 
     - mcu_lib:
         :git_url: git@github.com:raensink/ti.quickstart.mculib
 
     - app:
         :git_url: git@github.com:raensink/ti.quickstart.app
-        :local_dir: application
+        :dir_name: application
 
