@@ -43,8 +43,7 @@ class ProjectRepo
     # Name of directory where repo exists.
     # Defaults to same as repo name.
     # ----------------------------------------------------------------+-
-    @dir_name = given_hash[:repo_name]
-
+    @dir_name = nil
     if given_hash.has_key?(:dir_name)
       @dir_name = given_hash[:dir_name]
     end
@@ -53,28 +52,39 @@ class ProjectRepo
     # Full directory path to the local copy of the repo.
     # ----------------------------------------------------------------+-
     @dir_path  = nil
-    find_repo_dir_path
 
-    unless @dir_path
-      @dir_name = File.basename(@git_url)
-      find_repo_dir_path
+    if @dir_name
+      # Try to find the repository using the configured local dir name.
+      find_repo_dir_path(@dir_name)
+    end
+
+    if @dir_path.nil? and @dir_name.nil?
+      # Try to find the repository using the configured repo name.
+      find_repo_dir_path(@repo_name)
+    end
+
+    if @dir_path.nil? and @dir_name.nil?
+      # Try to find the repository using the repo name from the url.
+      find_repo_dir_path(File.basename(@git_url))
     end
 
     update_git_status
-  end
+
+  end  ### initialize ###
 
   private # ~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-+-
 
-  def find_repo_dir_path
-    # Look in the current dir and all parents
-    # for a directory whose name is @dir_name.
+  def find_repo_dir_path(given_dir_name)
+    # Look in the current dir and all parents for
+    # a directory whose name matches the given dir name.
     somedir = Dir.pwd
 
     while(TRUE)
-      repopath = somedir + "/#{@dir_name}"
+      repopath = somedir + "/#{given_dir_name}"
 
       if Dir.exists? repopath
         @dir_path  = repopath
+        @dir_name  = given_dir_name
         break
       end
       nextdirup = File.dirname(somedir)
