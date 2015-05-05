@@ -129,6 +129,8 @@ end
 
 
 def list_each_repository
+  puts
+  puts 'proj repo list: '
   proj_repo_list = get_list_of_repo_objects
   proj_repo_list.each do |repo|
     puts " "
@@ -142,6 +144,8 @@ def report_summary_status_of_each_repository
 
   printFormat = "%48s : %-9s %6s/%5s %s \n"
 
+  puts
+  puts 'proj repo status: '
   puts '================================================================================================#='
   printf printFormat,
     "Repo",
@@ -193,6 +197,8 @@ end
 
 
 def fetch_each_repository
+  puts
+  puts 'proj repo fetch: '
   proj_repo_list = get_list_of_repo_objects
   proj_repo_list.each do |repo|
     # Fetch into the current directory.
