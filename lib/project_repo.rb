@@ -40,18 +40,15 @@ class ProjectRepo
     @git_url = given_hash[:git_url]
 
     # ----------------------------------------------------------------+-
-    # Name of directory where repo exists.
-    # Defaults to same as repo name.
+    # Local directory name and
+    # Full directory path to the local copy of the repo.
     # ----------------------------------------------------------------+-
     @dir_name = nil
+    @dir_path  = nil
+
     if given_hash.has_key?(:dir_name)
       @dir_name = given_hash[:dir_name]
     end
-
-    # ----------------------------------------------------------------+-
-    # Full directory path to the local copy of the repo.
-    # ----------------------------------------------------------------+-
-    @dir_path  = nil
 
     if @dir_name
       # Try to find the repository using the configured local dir name.
@@ -66,6 +63,11 @@ class ProjectRepo
     if @dir_path.nil? and @dir_name.nil?
       # Try to find the repository using the repo name from the url.
       find_repo_dir_path(File.basename(@git_url))
+    end
+
+    if @dir_path.nil? and @dir_name.nil?
+      # Use the repo name from the url.
+      @dir_name = File.basename(@git_url)
     end
 
     update_git_status
