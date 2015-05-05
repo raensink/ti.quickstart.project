@@ -11,9 +11,9 @@
 #     """"""""""""""""""""""""""""""""""""""""""""""""""""""
 #
 # DEPENDENCIES:
-#     <project>/<this repo dir>/<this file>
-#     <project>/<this repo dir>/lib/project_repo.rb
-#     <project>/<this repo dir>/lib/system_command.rb
+#     <project dir>/<this repo dir>/<this file>
+#     <project dir>/<this repo dir>/lib/project_repo.rb
+#     <project dir>/<this repo dir>/lib/system_command.rb
 #
 #     """"""""""""""""""""""""""""""""""""""""""""""""""""""
 #     """"""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -26,6 +26,7 @@ require 'yaml'
 # ------------------------------------------------------------------------------+-
 $DIRPATH_THISREPO  = File.expand_path(File.dirname(__FILE__))
 $DIRPATH_RUBYLIB   = "#{$DIRPATH_THISREPO}/lib"
+$DIRPATH_PROJECT   = File.dirname $DIRPATH_THISREPO
 
 $gCustomCommandFile = "#{$DIRPATH_THISREPO}/project_config.yaml"
 
@@ -63,7 +64,7 @@ def puts_help
   puts <<-EOF
 
 SYNOPSIS:
-  proj command [sub-command or argument [argument]]
+  proj command [argument or sub-command [argument]]
 
 DESCRIPTION:
   This script can be used to generate the .config and .config_test.yaml files
@@ -71,8 +72,13 @@ DESCRIPTION:
   specified .yaml file.
 
 COMMANDS:
-  help, --help, -h:
-    show this help
+  proj repo list       # list details of each configured repository.
+  proj repo status     # list brief summary status of each repo.
+  proj repo fetch      # clone (as needed) and 'git fetch origin' each repo.
+  proj repo branch     # ?????????????????????
+  proj repo tag        # ?????????????????????
+
+  proj [help | --help | -h]   # show help
 
 EOF
 end
@@ -109,7 +115,7 @@ def get_list_of_repo_objects
 
     repo_config = {
       :repo_name  => name_key,
-      :url        => repo[name_key][:url],
+      :git_url    => repo[name_key][:git_url],
     }
 
     if repo[name_key].has_key?(:local_dir)
@@ -125,14 +131,16 @@ end
 def list_each_repository
   proj_repo_list = get_list_of_repo_objects
   proj_repo_list.each do |repo|
-    puts repo.to_s
+    puts " "
+    puts repo
   end
 end
+
 
 def report_summary_status_of_each_repository
   proj_repo_list = get_list_of_repo_objects
 
-  printFormat = "%48s: %-9s %6s/%5s %s \n"
+  printFormat = "%48s : %-9s %6s/%5s %s \n"
 
   puts '================================================================================================#='
   printf printFormat,
@@ -184,6 +192,15 @@ def report_summary_status_of_each_repository
 end
 
 
+def fetch_each_repository
+  proj_repo_list = get_list_of_repo_objects
+  proj_repo_list.each do |repo|
+    # Fetch into the current directory.
+    puts repo.fetch $DIRPATH_PROJECT
+  end
+end
+
+
 def handle_command_repo(given_sub_command, given_argument)
   if given_sub_command.nil?
     puts
@@ -196,6 +213,9 @@ def handle_command_repo(given_sub_command, given_argument)
 
   elsif given_sub_command == 'list'
     list_each_repository
+
+  elsif given_sub_command == 'fetch'
+    fetch_each_repository
 
   else
     puts
